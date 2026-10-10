@@ -27,7 +27,7 @@ from typing import Dict, List, Tuple, Optional
 
 import numpy as np
 
-from data_loader import DataLoader, ICUArrays
+from data_loader_grud import DataLoader, ICUArrays
 
 
 # ---------------------------------------------------------------------
