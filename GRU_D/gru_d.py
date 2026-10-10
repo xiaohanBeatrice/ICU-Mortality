@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import os
 import sys
-sys.path.append(os.getcwd())
 import copy
 import random
 import argparse
@@ -18,7 +17,6 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Union
 
-sys.path.append(os.getcwd())
 
 import numpy as np
 import optuna
@@ -38,8 +36,8 @@ from sklearn.metrics import (
     roc_curve
 )
 
-from data_loader import DataLoader
-from unified_preprocessor import UnifiedPreprocessor
+from data_loader_grud import DataLoader
+from unified_preprocessor_grud import UnifiedPreprocessor
 
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
