@@ -1,0 +1,34 @@
+
+    GRU-D Results Summary (6h Window)
+    ==================================
+    Model:        GRU-D (Gated Recurrent Unit with Decay)
+    Window:       6 hours
+    Threshold:    0.3843
+
+    Cross-Validation Results (10-fold):
+      CV_AUROC:   0.8463
+      CV_AUPRC:   0.5238
+      CV_F1:      0.4645
+      CV_Brier:   0.1518
+
+    Test Set Results:
+      TEST_AUROC:  0.8475
+      TEST_AUPRC:  0.4838
+      TEST_F1:     0.4507
+      TEST_Brier:  0.1601
+      Sensitivity: 0.8421
+      Specificity: 0.6851
+      Accuracy:    0.7075
+
+    Overfitting Analysis:
+      CV->Test AUROC gap: +0.0012
+      CV->Test AUPRC gap: -0.0400
+
+    Best Hyperparameters (Optuna):
+      hidden_dim:   32
+      dropout:      0.2
+      lr:           0.000515
+      weight_decay: 0.00388
+      batch_size:   32
+      loss:         weighted_bce (pos_weight≈6.04)
+    
