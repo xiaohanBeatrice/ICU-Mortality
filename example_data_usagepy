@@ -1,0 +1,209 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Example: Quick Start with Preprocessed Data
+
+This script demonstrates how to load and use preprocessed data
+for different model types.
+
+Usage:
+    python example_data_usage.py
+"""
+
+import numpy as np
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent
+
+def example_2d_data():
+    """Example: Load 2D data for Logistic/SVM/XGBoost"""
+    print("\n" + "="*70)
+    print("EXAMPLE 1: Loading 2D Data (for Logistic/SVM/XGBoost)")
+    print("="*70)
+    
+    data_path = (REPO_ROOT / "preprocessed_data" / "2d_format/2d_train.npz")
+    
+    if not data_path.exists():
+        print(f"⚠️  {data_path} not found. Run preprocessing first.")
+        return False
+    
+    # Load data
+    data = np.load(data_path)
+    X = data['X']  # (N, 1728)
+    y = data['y']  # (N,)
+    
+    print(f"\n✓ Loaded 2D training data")
+    print(f"  X shape: {X.shape}")
+    print(f"    - N=number of samples: {X.shape[0]}")
+    print(f"    - 1728=48 hours × 36 features")
+    print(f"  y shape: {y.shape}")
+    print(f"    - Binary labels (0=survived, 1=died)")
+    
+    print(f"\nData statistics:")
+    print(f"  X range: [{np.nanmin(X):.2f}, {np.nanmax(X):.2f}]")
+    print(f"  X mean: {np.nanmean(X):.4f} ± {np.nanstd(X):.4f}")
+    print(f"  Mortality rate: {y.mean():.2%}")
+    print(f"  NaN values: {np.isnan(X).sum()} (should be 0)")
+    
+    return True
+
+
+def example_raw_data():
+    """Example: Load raw data for GRU-D"""
+    print("\n" + "="*70)
+    print("EXAMPLE 2: Loading Raw Data (for GRU-D)")
+    print("="*70)
+    
+    data_path = (REPO_ROOT / "preprocessed_data" / "raw_format/grud_raw_train.npz")
+    
+    if not data_path.exists():
+        print(f"⚠️  {data_path} not found. Run preprocessing first.")
+        return False
+    
+    # Load data
+    data = np.load(data_path)
+    X = data['X']      # (N, 48, 36) with NaN
+    M = data['M']      # (N, 48, 36) mask
+    D = data['D']      # (N, 48, 36) decay
+    y = data['y']      # (N,)
+    
+    print(f"\n✓ Loaded raw data for GRU-D")
+    print(f"  X shape: {X.shape}")
+    print(f"    - N=samples, 48=hours, 36=features")
+    print(f"  M shape: {M.shape}")
+    print(f"    - Observation mask (1=observed, 0=missing)")
+    print(f"  D shape: {D.shape}")
+    print(f"    - Time-to-event / decay")
+    print(f"  y shape: {y.shape}")
+    
+    print(f"\nData statistics:")
+    print(f"  X NaN count: {np.isnan(X).sum():,} out of {X.size:,} ({np.isnan(X).sum()/X.size*100:.1f}%)")
+    print(f"  Observation rate (M): {M.mean()*100:.1f}%")
+    print(f"  Max decay value: {D.max():.0f} hours")
+    
+    # Show concatenation for GRU-D input
+    X_grud = np.concatenate([X, M, D], axis=2)  # (N, 48, 108)
+    print(f"\n  For GRU-D input: concatenate [X, M, D]")
+    print(f"    → Shape: {X_grud.shape} (with 3 channels)")
+    
+    return True
+
+
+def example_3d_window_data():
+    """Example: Load 3D windowed data for GRU"""
+    print("\n" + "="*70)
+    print("EXAMPLE 3: Loading 3D Window Data (for GRU)")
+    print("="*70)
+    
+    # Try 6h window (recommended)
+    data_path = (REPO_ROOT / "preprocessed_data" / "3d_window_format/gru_6h_train.npz")
+    
+    if not data_path.exists():
+        print(f"⚠️  {data_path} not found. Run preprocessing first.")
+        return False
+    
+    # Load data
+    data = np.load(data_path)
+    X = data['X']  # (N, n_windows, 180)
+    y = data['y']  # (N,)
+    
+    print(f"\n✓ Loaded 6-hour windowed data")
+    print(f"  X shape: {X.shape}")
+    print(f"    - {X.shape[0]}=samples")
+    print(f"    - {X.shape[1]}=time windows (48 hours / 6 hours)")
+    print(f"    - {X.shape[2]}=features (36 features × 5 statistics)")
+    print(f"  y shape: {y.shape}")
+    
+    print(f"\nFeature breakdown per window:")
+    print(f"  36 features × 5 statistics = 180")
+    print(f"  Statistics: mean, max, min, std, last_value")
+    
+    print(f"\nData statistics:")
+    print(f"  X range: [{np.nanmin(X):.2f}, {np.nanmax(X):.2f}]")
+    print(f"  NaN values: {np.isnan(X).sum()} (should be 0)")
+    
+    # Show other window options
+    print(f"\n  Available windows:")
+    for window_h in [3, 6, 12, 24]:
+        n_wins = 48 // window_h
+        print(f"    - {window_h}h: {n_wins} windows, shape ({X.shape[0]}, {n_wins}, 180)")
+    
+    return True
+
+
+def example_metadata():
+    """Example: Read preprocessing metadata"""
+    print("\n" + "="*70)
+    print("EXAMPLE 4: Preprocessing Metadata")
+    print("="*70)
+    
+    import json
+    
+    metadata_path = (REPO_ROOT / "preprocessed_data" / "metadata.json")
+    
+    if not metadata_path.exists():
+        print(f"⚠️  {metadata_path} not found. Run preprocessing first.")
+        return False
+    
+    with open(metadata_path) as f:
+        metadata = json.load(f)
+    
+    print(f"\n✓ Loaded preprocessing metadata")
+    print(f"\nPreprocessing info:")
+    if 'preprocessing' in metadata:
+        prep = metadata['preprocessing']
+        print(f"  Total patients: {prep.get('total_patients', 'N/A')}")
+        print(f"  Valid patients: {prep.get('valid_patients', 'N/A')}")
+    
+    if 'split' in metadata:
+        split = metadata['split']
+        print(f"\nSplit sizes:")
+        print(f"  Train: {split.get('train_size', 'N/A')}")
+        print(f"  Val: {split.get('val_size', 'N/A')}")
+        print(f"  Test: {split.get('test_size', 'N/A')}")
+    
+    if 'features' in metadata:
+        features = metadata['features']
+        print(f"\nFeatures:")
+        print(f"  Time-series: {len(features.get('ts_features', []))} features")
+        print(f"  Static: {len(features.get('static_features', []))} features")
+    
+    return True
+
+
+def main():
+    print("\n" + "="*70)
+    print("ICU Mortality Data - Usage Examples")
+    print("="*70)
+    print("\nThis script shows how to load different data formats.")
+    print("First run: python run_preprocessing.py\n")
+    
+    results = []
+    
+    # Run examples
+    results.append(("2D Data", example_2d_data()))
+    results.append(("Raw Data", example_raw_data()))
+    results.append(("3D Window Data", example_3d_window_data()))
+    results.append(("Metadata", example_metadata()))
+    
+    # Summary
+    print("\n" + "="*70)
+    print("SUMMARY")
+    print("="*70)
+    
+    for name, success in results:
+        status = "✓ Success" if success else "⚠️  Skipped"
+        print(f"  {status}: {name}")
+    
+    print("\n" + "="*70)
+    print("\n📚 Next Steps:")
+    print("  1. Read DATA_PROCESSING_GUIDE.md for detailed information")
+    print("  2. Check preprocessed_data/ folder structure")
+    print("  3. Use example code from DATA_PROCESSING_GUIDE.md in your model")
+    print("  4. For questions, see comments in data_processing/ files")
+    print("\n")
+
+
+if __name__ == "__main__":
+    main()
